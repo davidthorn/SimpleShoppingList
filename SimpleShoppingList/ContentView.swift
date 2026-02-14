@@ -2,23 +2,41 @@
 //  ContentView.swift
 //  SimpleShoppingList
 //
-//  Created by David Thorn on 14.02.26.
+//  Created by David Thorn on 14.02.2026.
 //
 
 import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+public struct ContentView: View {
+    private let serviceContainer: ServiceContainerProtocol
+
+    public init(serviceContainer: ServiceContainerProtocol) {
+        self.serviceContainer = serviceContainer
+    }
+
+    public var body: some View {
+        ZStack {
+            AppStyle.background
+                .ignoresSafeArea()
+
+            TabView {
+                DashboardScene(serviceContainer: serviceContainer)
+                    .tabItem {
+                        Label("Dashboard", systemImage: "chart.bar")
+                    }
+
+                ShoppingListsScene(serviceContainer: serviceContainer)
+                    .tabItem {
+                        Label("Lists", systemImage: "list.bullet")
+                    }
+            }
+            .tint(AppStyle.accent)
         }
-        .padding()
     }
 }
 
+#if DEBUG
 #Preview {
-    ContentView()
+    ContentView(serviceContainer: ServiceContainer())
 }
+#endif
