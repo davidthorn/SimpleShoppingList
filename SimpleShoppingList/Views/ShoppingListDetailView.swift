@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SimpleFramework
 
 public struct ShoppingListDetailView: View {
     @StateObject private var viewModel: ShoppingListDetailViewModel
@@ -14,59 +15,50 @@ public struct ShoppingListDetailView: View {
 
     public init(serviceContainer: ServiceContainerProtocol, listID: UUID) {
         self.listID = listID
-        let vm = ShoppingListDetailViewModel(shoppingStore: serviceContainer.shoppingStore, listID: listID)
+        let vm = ShoppingListDetailViewModel(shoppingService: serviceContainer.shoppingService, listID: listID)
         self._viewModel = StateObject(wrappedValue: vm)
     }
 
     public var body: some View {
-        List {
-            if viewModel.items.isEmpty {
-                ContentUnavailableView("No Items", systemImage: "basket")
-                    .listRowBackground(Color.clear)
-            }
+        ZStack {
+            AppStyle.background
+                .ignoresSafeArea()
 
-            ForEach(viewModel.items) { item in
-                NavigationLink(value: ShoppingListsRoute.editItem(listID: listID, itemID: item.id)) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "cart.fill.badge.plus")
-                            .foregroundStyle(AppStyle.accent)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if viewModel.items.isEmpty {
+                        ContentUnavailableView("No Items", systemImage: "basket")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                    } else {
+                        ForEach(viewModel.items) { item in
+                            NavigationLink(value: ShoppingListsRoute.editItem(listID: listID, itemID: item.id)) {
+                                SimpleSelectableCardRow(
+                                    title: item.name,
+                                    subtitle: item.price.formatted(
+                                        .currency(code: Locale.current.currency?.identifier ?? "USD")
+                                    ),
+                                    systemImage: "cart.fill.badge.plus",
+                                    tint: AppStyle.success,
+                                    isSelected: item.isCollected
+                                ) {
+                                    Task {
+                                        if Task.isCancelled {
+                                            return
+                                        }
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(item.name)
-                            Text(item.price, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-                                .font(.subheadline)
-                                .foregroundStyle(AppStyle.textSecondary)
-                        }
-                        Spacer()
-                        Button {
-                            Task {
-                                if Task.isCancelled {
-                                    return
+                                        await viewModel.setCollected(!item.isCollected, for: item)
+                                    }
                                 }
-
-                                await viewModel.setCollected(!item.isCollected, for: item)
                             }
-                        } label: {
-                            Image(systemName: item.isCollected ? "checkmark.circle.fill" : "circle")
-                                .foregroundStyle(item.isCollected ? AppStyle.success : AppStyle.textSecondary)
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
-                    .padding(.vertical, 8)
                 }
-                .listRowBackground(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(AppStyle.cardFill)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(AppStyle.cardBorder, lineWidth: 1)
-                        )
-                        .padding(.vertical, 2)
-                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .navigationTitle(viewModel.title)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -86,9 +78,6 @@ public struct ShoppingListDetailView: View {
 #Preview {
     NavigationStack {
         ShoppingListDetailView(serviceContainer: ServiceContainer(), listID: UUID())
-            .navigationDestination(for: ShoppingListsRoute.self) { _ in
-                EmptyView()
-            }
     }
 }
 #endif

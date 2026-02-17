@@ -6,51 +6,58 @@
 //
 
 import SwiftUI
+import SimpleFramework
 
 public struct ShoppingListsView: View {
     @StateObject private var viewModel: ShoppingListsViewModel
 
     public init(serviceContainer: ServiceContainerProtocol) {
-        let vm = ShoppingListsViewModel(shoppingStore: serviceContainer.shoppingStore)
+        let vm = ShoppingListsViewModel(shoppingService: serviceContainer.shoppingService)
         self._viewModel = StateObject(wrappedValue: vm)
     }
 
     public var body: some View {
-        List {
-            if viewModel.lists.isEmpty {
-                ContentUnavailableView("No Shopping Lists", systemImage: "cart")
-                    .listRowBackground(Color.clear)
-            }
+        ZStack {
+            AppStyle.background
+                .ignoresSafeArea()
 
-            ForEach(viewModel.lists) { list in
-                NavigationLink(value: ShoppingListsRoute.detail(listID: list.id)) {
-                    ShoppingListRowComponent(list: list)
-                }
-                .listRowBackground(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(AppStyle.cardFill)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(AppStyle.cardBorder, lineWidth: 1)
-                        )
-                        .padding(.vertical, 2)
-                )
-            }
-            .onDelete { offsets in
-                Task {
-                    for index in offsets {
-                        if Task.isCancelled {
-                            return
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if viewModel.lists.isEmpty {
+                        ContentUnavailableView("No Shopping Lists", systemImage: "cart")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                    } else {
+                        ForEach(viewModel.lists) { list in
+                            NavigationLink(value: ShoppingListsRoute.detail(listID: list.id)) {
+                                SimpleRouteRow(
+                                    title: list.name,
+                                    subtitle: "\(list.collectedCount)/\(list.itemCount) collected",
+                                    systemImage: "bag.circle.fill",
+                                    tint: AppStyle.accent
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    Task {
+                                        if Task.isCancelled {
+                                            return
+                                        }
+
+                                        await viewModel.deleteList(id: list.id)
+                                    }
+                                } label: {
+                                    Label("Delete List", systemImage: "trash")
+                                }
+                            }
                         }
-
-                        let listID = viewModel.lists[index].id
-                        await viewModel.deleteList(id: listID)
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .navigationTitle("Shopping Lists")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -67,9 +74,6 @@ public struct ShoppingListsView: View {
 #Preview {
     NavigationStack {
         ShoppingListsView(serviceContainer: ServiceContainer())
-            .navigationDestination(for: ShoppingListsRoute.self) { _ in
-                EmptyView()
-            }
     }
 }
 #endif

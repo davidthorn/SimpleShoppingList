@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SimpleFramework
 
 public struct ShoppingListEditorView: View {
     @Environment(\.dismiss) private var dismiss
@@ -14,7 +15,7 @@ public struct ShoppingListEditorView: View {
 
     public init(serviceContainer: ServiceContainerProtocol, listID: UUID?) {
         let vm = ShoppingListEditorViewModel(
-            shoppingStore: serviceContainer.shoppingStore,
+            shoppingService: serviceContainer.shoppingService,
             listID: listID
         )
         self._viewModel = StateObject(wrappedValue: vm)
@@ -26,22 +27,26 @@ public struct ShoppingListEditorView: View {
             AppStyle.background
                 .ignoresSafeArea()
 
-            Form {
-                Section {
-                    Label("List Details", systemImage: "square.and.pencil")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppStyle.accent)
-                }
-                .listRowBackground(AppStyle.formRowBackground)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    SimpleHeroCard(
+                        title: viewModel.isPersisted ? "Edit List" : "New List",
+                        message: "Keep your shopping list organized and easy to scan.",
+                        systemImage: viewModel.isPersisted ? "square.and.pencil.circle.fill" : "plus.circle.fill",
+                        tint: AppStyle.accent
+                    )
 
-                Section("Name") {
-                    TextField("e.g. Weekly Shop", text: $viewModel.name)
-                }
-                .listRowBackground(AppStyle.formRowBackground)
+                    SimpleLabeledTextFieldCard(
+                        text: $viewModel.name,
+                        title: "List Name",
+                        placeholder: "e.g. Weekly Shop"
+                    )
 
-                Section {
-                    if viewModel.shouldShowSaveButton {
-                        Button("Save") {
+                    SimpleFormActionButtons(
+                        showSave: viewModel.shouldShowSaveButton,
+                        showReset: viewModel.shouldShowResetButton,
+                        showDelete: viewModel.shouldShowDeleteButton,
+                        onSave: {
                             Task {
                                 if Task.isCancelled {
                                     return
@@ -53,25 +58,19 @@ public struct ShoppingListEditorView: View {
                                 }
                                 dismiss()
                             }
-                        }
-                    }
-
-                    if viewModel.shouldShowResetButton {
-                        Button("Reset") {
+                        },
+                        onReset: {
                             viewModel.resetChanges()
-                        }
-                    }
-
-                    if viewModel.shouldShowDeleteButton {
-                        Button("Delete", role: .destructive) {
+                        },
+                        onDelete: {
                             showDeleteConfirmation = true
                         }
-                    }
+                    )
                 }
-                .listRowBackground(AppStyle.formRowBackground)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .scrollContentBackground(.hidden)
-            .background(AppStyle.formBackground)
+            .scrollDismissesKeyboard(.interactively)
         }
         .tint(AppStyle.accent)
         .navigationTitle(viewModel.isPersisted ? "Edit List" : "New List")

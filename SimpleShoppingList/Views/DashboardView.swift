@@ -11,7 +11,7 @@ public struct DashboardView: View {
     @StateObject private var viewModel: DashboardViewModel
 
     public init(serviceContainer: ServiceContainerProtocol) {
-        let vm = DashboardViewModel(shoppingStore: serviceContainer.shoppingStore)
+        let vm = DashboardViewModel(shoppingService: serviceContainer.shoppingService)
         self._viewModel = StateObject(wrappedValue: vm)
     }
 
@@ -56,9 +56,6 @@ public struct DashboardView: View {
 #Preview {
     NavigationStack {
         DashboardView(serviceContainer: ServiceContainer())
-            .navigationDestination(for: DashboardRoute.self) { _ in
-                EmptyView()
-            }
     }
 }
 #endif

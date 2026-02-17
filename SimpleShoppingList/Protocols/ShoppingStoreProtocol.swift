@@ -7,12 +7,14 @@
 
 import Foundation
 
+/// Contract for shopping list and item persistence operations.
 public protocol ShoppingStoreProtocol: Actor {
+    /// Streams full shopping list snapshots whenever data changes.
     func listsStream() -> AsyncStream<[ShoppingList]>
+    /// Fetches the latest persisted shopping lists.
     func fetchLists() async -> [ShoppingList]
+    /// Creates or updates a shopping list.
     func upsertList(_ list: ShoppingList) async
+    /// Deletes a shopping list by identifier.
     func deleteList(id: UUID) async
-    func upsertItem(_ item: ShoppingItem, inListID listID: UUID) async
-    func deleteItem(id: UUID, fromListID listID: UUID) async
-    func setItemCollected(_ isCollected: Bool, itemID: UUID, inListID listID: UUID) async
 }

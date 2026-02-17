@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SimpleFramework
 
 public struct ShoppingItemEditorView: View {
     @Environment(\.dismiss) private var dismiss
@@ -14,7 +15,7 @@ public struct ShoppingItemEditorView: View {
 
     public init(serviceContainer: ServiceContainerProtocol, listID: UUID, itemID: UUID?) {
         let vm = ShoppingItemEditorViewModel(
-            shoppingStore: serviceContainer.shoppingStore,
+            shoppingService: serviceContainer.shoppingService,
             listID: listID,
             itemID: itemID
         )
@@ -27,28 +28,33 @@ public struct ShoppingItemEditorView: View {
             AppStyle.background
                 .ignoresSafeArea()
 
-            Form {
-                Section {
-                    Label("Item Details", systemImage: "tag.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppStyle.accent)
-                }
-                .listRowBackground(AppStyle.formRowBackground)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    SimpleHeroCard(
+                        title: viewModel.isPersisted ? "Edit Item" : "New Item",
+                        message: "Track what you need and how much it costs.",
+                        systemImage: viewModel.isPersisted ? "tag.circle.fill" : "plus.circle.fill",
+                        tint: AppStyle.accent
+                    )
 
-                Section("Item") {
-                    TextField("e.g. Apples", text: $viewModel.name)
-                }
-                .listRowBackground(AppStyle.formRowBackground)
+                    SimpleLabeledTextFieldCard(
+                        text: $viewModel.name,
+                        title: "Item Name",
+                        placeholder: "e.g. Apples"
+                    )
 
-                Section("Price") {
-                    TextField("e.g. 3.50", text: $viewModel.priceText)
-                        .keyboardType(.decimalPad)
-                }
-                .listRowBackground(AppStyle.formRowBackground)
+                    SimpleLabeledTextFieldCard(
+                        text: $viewModel.priceText,
+                        title: "Price",
+                        placeholder: "e.g. 3.50"
+                    )
+                    .keyboardType(.decimalPad)
 
-                Section {
-                    if viewModel.shouldShowSaveButton {
-                        Button("Save") {
+                    SimpleFormActionButtons(
+                        showSave: viewModel.shouldShowSaveButton,
+                        showReset: viewModel.shouldShowResetButton,
+                        showDelete: viewModel.shouldShowDeleteButton,
+                        onSave: {
                             Task {
                                 if Task.isCancelled {
                                     return
@@ -60,25 +66,19 @@ public struct ShoppingItemEditorView: View {
                                 }
                                 dismiss()
                             }
-                        }
-                    }
-
-                    if viewModel.shouldShowResetButton {
-                        Button("Reset") {
+                        },
+                        onReset: {
                             viewModel.resetChanges()
-                        }
-                    }
-
-                    if viewModel.shouldShowDeleteButton {
-                        Button("Delete", role: .destructive) {
+                        },
+                        onDelete: {
                             showDeleteConfirmation = true
                         }
-                    }
+                    )
                 }
-                .listRowBackground(AppStyle.formRowBackground)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .scrollContentBackground(.hidden)
-            .background(AppStyle.formBackground)
+            .scrollDismissesKeyboard(.interactively)
         }
         .tint(AppStyle.accent)
         .navigationTitle(viewModel.isPersisted ? "Edit Item" : "New Item")

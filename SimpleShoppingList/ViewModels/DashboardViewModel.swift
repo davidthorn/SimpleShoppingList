@@ -12,13 +12,16 @@ import Foundation
 public final class DashboardViewModel: ObservableObject {
     @Published public private(set) var summary: DashboardSummary
 
-    private let shoppingStore: ShoppingStoreProtocol
+    private let shoppingService: ShoppingServiceProtocol
     private var streamTask: Task<Void, Never>?
 
-    public init(shoppingStore: ShoppingStoreProtocol) {
-        self.shoppingStore = shoppingStore
+    public init(shoppingService: ShoppingServiceProtocol) {
+        self.shoppingService = shoppingService
         self.summary = .empty
         streamTask = Task {
+            if Task.isCancelled {
+                return
+            }
             await observeLists()
         }
     }
@@ -28,18 +31,18 @@ public final class DashboardViewModel: ObservableObject {
     }
 
     private func observeLists() async {
-        let stream = await shoppingStore.listsStream()
+        let stream = await shoppingService.listsStream()
 
         for await lists in stream {
             if Task.isCancelled {
                 return
             }
 
-            summary = Self.makeSummary(from: lists)
+            summary = makeSummary(from: lists)
         }
     }
 
-    private static func makeSummary(from lists: [ShoppingList]) -> DashboardSummary {
+    private func makeSummary(from lists: [ShoppingList]) -> DashboardSummary {
         let totalLists = lists.count
         let totalItems = lists.reduce(0) { $0 + $1.itemCount }
         let totalCollectedItems = lists.reduce(0) { $0 + $1.collectedCount }

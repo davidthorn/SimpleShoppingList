@@ -15,12 +15,12 @@ public final class ShoppingListEditorViewModel: ObservableObject {
     public let listID: UUID
     public let isPersisted: Bool
 
-    private let shoppingStore: ShoppingStoreProtocol
+    private let shoppingService: ShoppingServiceProtocol
     private var originalList: ShoppingList?
     private var streamTask: Task<Void, Never>?
 
-    public init(shoppingStore: ShoppingStoreProtocol, listID: UUID?) {
-        self.shoppingStore = shoppingStore
+    public init(shoppingService: ShoppingServiceProtocol, listID: UUID?) {
+        self.shoppingService = shoppingService
         self.originalList = nil
         self.listID = listID ?? UUID()
         self.name = ""
@@ -28,6 +28,9 @@ public final class ShoppingListEditorViewModel: ObservableObject {
 
         if listID != nil {
             streamTask = Task {
+                if Task.isCancelled {
+                    return
+                }
                 await observeList()
             }
         }
@@ -71,15 +74,15 @@ public final class ShoppingListEditorViewModel: ObservableObject {
         list.name = trimmedName
         list.updatedAt = now
 
-        await shoppingStore.upsertList(list)
+        await shoppingService.upsertList(list)
     }
 
     public func delete() async {
-        await shoppingStore.deleteList(id: listID)
+        await shoppingService.deleteList(id: listID)
     }
 
     private func observeList() async {
-        let stream = await shoppingStore.listsStream()
+        let stream = await shoppingService.listsStream()
         for await lists in stream {
             if Task.isCancelled {
                 return

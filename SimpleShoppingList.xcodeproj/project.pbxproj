@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		44650D3C2F44C6B3004FE0CF /* SimpleFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 44650D3B2F44C6B3004FE0CF /* SimpleFramework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		4439FBC52F4076BC003DB03B /* SimpleShoppingList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleShoppingList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				44650D3C2F44C6B3004FE0CF /* SimpleFramework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = SimpleShoppingList;
 			packageProductDependencies = (
+				44650D3B2F44C6B3004FE0CF /* SimpleFramework */,
 			);
 			productName = SimpleShoppingList;
 			productReference = 4439FBC52F4076BC003DB03B /* SimpleShoppingList.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 4439FBBC2F4076BC003DB03B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				44650D3A2F44C6B3004FE0CF /* XCRemoteSwiftPackageReference "SimpleFramework" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4439FBC62F4076BC003DB03B /* Products */;
 			projectDirPath = "";
@@ -334,6 +343,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		44650D3A2F44C6B3004FE0CF /* XCRemoteSwiftPackageReference "SimpleFramework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/davidthorn/SimpleFramework.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		44650D3B2F44C6B3004FE0CF /* SimpleFramework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 44650D3A2F44C6B3004FE0CF /* XCRemoteSwiftPackageReference "SimpleFramework" */;
+			productName = SimpleFramework;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4439FBBD2F4076BC003DB03B /* Project object */;
 }

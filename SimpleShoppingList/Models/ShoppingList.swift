@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ShoppingList: Codable, Identifiable, Hashable, Sendable {
+public nonisolated struct ShoppingList: Codable, Identifiable, Hashable, Sendable {
     public let id: UUID
     public var name: String
     public var items: [ShoppingItem]

@@ -12,13 +12,16 @@ import Foundation
 public final class ShoppingListsViewModel: ObservableObject {
     @Published public private(set) var lists: [ShoppingList]
 
-    private let shoppingStore: ShoppingStoreProtocol
+    private let shoppingService: ShoppingServiceProtocol
     private var streamTask: Task<Void, Never>?
 
-    public init(shoppingStore: ShoppingStoreProtocol) {
-        self.shoppingStore = shoppingStore
+    public init(shoppingService: ShoppingServiceProtocol) {
+        self.shoppingService = shoppingService
         self.lists = []
         streamTask = Task {
+            if Task.isCancelled {
+                return
+            }
             await observeLists()
         }
     }
@@ -28,11 +31,11 @@ public final class ShoppingListsViewModel: ObservableObject {
     }
 
     public func deleteList(id: UUID) async {
-        await shoppingStore.deleteList(id: id)
+        await shoppingService.deleteList(id: id)
     }
 
     private func observeLists() async {
-        let stream = await shoppingStore.listsStream()
+        let stream = await shoppingService.listsStream()
 
         for await lists in stream {
             if Task.isCancelled {

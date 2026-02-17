@@ -13,14 +13,17 @@ public final class ShoppingListDetailViewModel: ObservableObject {
     @Published public private(set) var list: ShoppingList?
 
     private let listID: UUID
-    private let shoppingStore: ShoppingStoreProtocol
+    private let shoppingService: ShoppingServiceProtocol
     private var streamTask: Task<Void, Never>?
 
-    public init(shoppingStore: ShoppingStoreProtocol, listID: UUID) {
-        self.shoppingStore = shoppingStore
+    public init(shoppingService: ShoppingServiceProtocol, listID: UUID) {
+        self.shoppingService = shoppingService
         self.listID = listID
         self.list = nil
         streamTask = Task {
+            if Task.isCancelled {
+                return
+            }
             await observeList()
         }
     }
@@ -38,11 +41,11 @@ public final class ShoppingListDetailViewModel: ObservableObject {
     }
 
     public func setCollected(_ isCollected: Bool, for item: ShoppingItem) async {
-        await shoppingStore.setItemCollected(isCollected, itemID: item.id, inListID: listID)
+        await shoppingService.setItemCollected(isCollected, itemID: item.id, inListID: listID)
     }
 
     private func observeList() async {
-        let stream = await shoppingStore.listsStream()
+        let stream = await shoppingService.listsStream()
 
         for await lists in stream {
             if Task.isCancelled {
