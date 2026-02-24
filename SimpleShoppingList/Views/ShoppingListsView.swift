@@ -24,31 +24,37 @@ public struct ShoppingListsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if viewModel.lists.isEmpty {
-                        ContentUnavailableView("No Shopping Lists", systemImage: "cart")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
+                        SimpleStatusCard(
+                            title: "No Shopping Lists",
+                            message: "Create your first list to start planning your next shop.",
+                            systemImage: "cart",
+                            tint: AppStyle.accent
+                        )
+                        .padding(.vertical, 24)
                     } else {
-                        ForEach(viewModel.lists) { list in
-                            NavigationLink(value: ShoppingListsRoute.detail(listID: list.id)) {
-                                SimpleRouteRow(
-                                    title: list.name,
-                                    subtitle: "\(list.collectedCount)/\(list.itemCount) collected",
-                                    systemImage: "bag.circle.fill",
-                                    tint: AppStyle.accent
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    Task {
-                                        if Task.isCancelled {
-                                            return
-                                        }
+                        SimpleRouteSection(title: "Lists") {
+                            ForEach(viewModel.lists) { list in
+                                NavigationLink(value: ShoppingListsRoute.detail(listID: list.id)) {
+                                    SimpleRouteRow(
+                                        title: list.name,
+                                        subtitle: "\(list.collectedCount)/\(list.itemCount) collected",
+                                        systemImage: "bag.circle.fill",
+                                        tint: AppStyle.accent
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            if Task.isCancelled {
+                                                return
+                                            }
 
-                                        await viewModel.deleteList(id: list.id)
+                                            await viewModel.deleteList(id: list.id)
+                                        }
+                                    } label: {
+                                        Label("Delete List", systemImage: "trash")
                                     }
-                                } label: {
-                                    Label("Delete List", systemImage: "trash")
                                 }
                             }
                         }

@@ -27,31 +27,37 @@ public struct ShoppingListDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if viewModel.items.isEmpty {
-                        ContentUnavailableView("No Items", systemImage: "basket")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
+                        SimpleStatusCard(
+                            title: "No Items",
+                            message: "Add your first item for this list.",
+                            systemImage: "basket",
+                            tint: AppStyle.success
+                        )
+                        .padding(.vertical, 24)
                     } else {
-                        ForEach(viewModel.items) { item in
-                            NavigationLink(value: ShoppingListsRoute.editItem(listID: listID, itemID: item.id)) {
-                                SimpleSelectableCardRow(
-                                    title: item.name,
-                                    subtitle: item.price.formatted(
-                                        .currency(code: Locale.current.currency?.identifier ?? "USD")
-                                    ),
-                                    systemImage: "cart.fill.badge.plus",
-                                    tint: AppStyle.success,
-                                    isSelected: item.isCollected
-                                ) {
-                                    Task {
-                                        if Task.isCancelled {
-                                            return
-                                        }
+                        SimpleRouteSection(title: "Items") {
+                            ForEach(viewModel.items) { item in
+                                NavigationLink(value: ShoppingListsRoute.editItem(listID: listID, itemID: item.id)) {
+                                    SimpleSelectableCardRow(
+                                        title: item.name,
+                                        subtitle: item.price.formatted(
+                                            .currency(code: Locale.current.currency?.identifier ?? "USD")
+                                        ),
+                                        systemImage: "cart.fill.badge.plus",
+                                        tint: AppStyle.success,
+                                        isSelected: item.isCollected
+                                    ) {
+                                        Task {
+                                            if Task.isCancelled {
+                                                return
+                                            }
 
-                                        await viewModel.setCollected(!item.isCollected, for: item)
+                                            await viewModel.setCollected(!item.isCollected, for: item)
+                                        }
                                     }
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
